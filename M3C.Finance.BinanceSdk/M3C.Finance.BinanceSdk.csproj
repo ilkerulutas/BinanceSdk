@@ -104,8 +104,6 @@
     <Compile Include="ResponseObjects\WebSocketTradesMessage.cs" />
     <Compile Include="ResponseObjects\WsUserDataAccountUpdateMessage.cs" />
     <Compile Include="ResponseObjects\WebSocketUserDataExecutionReportMessage.cs" />
-    <Compile Include="ResponseObjects\WebSocketUserDataMessage.cs" />
-    <Compile Include="ResponseObjects\WebSocketUserDataMessageType.cs" />
     <Compile Include="ResponseObjects\WsUserDataOrderUpdateMessage.cs" />
     <Compile Include="ResponseObjects\WsUserDataTradeUpdateMessage.cs" />
   </ItemGroup>

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using M3C.Finance.BinanceSdk.ResponseObjects;
 using Newtonsoft.Json.Linq;
 
@@ -65,6 +61,34 @@ namespace M3C.Finance.BinanceSdk
             {
                 Items = resultList
             };
+        }
+
+        public static WebSocketDepthMessage DepthMessageParser(string input)
+        {
+            var response = JObject.Parse(input);
+            return new WebSocketDepthMessage
+            {
+                EventType = (string)response["e"],
+                EventTime = (long)response["E"],
+                Symbol = (string)response["s"],
+                UpdateId = (long)response["u"],
+                AskDepthDelta = AskBidParser((JArray)response["a"]),
+                BidDepthDelta = AskBidParser((JArray)response["b"])
+            };
+        }
+
+        private static List<OrderRecord> AskBidParser(JArray array)
+        {
+            var resultList = new List<OrderRecord>();
+            foreach (var item in array)
+            {
+                resultList.Add(new OrderRecord
+                {
+                    Price = (decimal)item[0],
+                    Quantity = (decimal)item[1]
+                });
+            }
+            return resultList;
         }
     }
 }

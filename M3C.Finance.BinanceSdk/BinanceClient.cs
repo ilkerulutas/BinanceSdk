@@ -15,7 +15,6 @@ namespace M3C.Finance.BinanceSdk
     {
         private readonly string _apiKey;
         private readonly string _apiSecret;
-        private long? _recvWindow;
 
         private const string BaseUrl = "https://www.binance.com/api";
 
@@ -24,12 +23,10 @@ namespace M3C.Finance.BinanceSdk
         /// </summary>
         /// <param name="apiKey">Binance Api Key</param>
         /// <param name="apiSecret">Binance Api Secret</param>
-        /// <param name="recvWindow">Millisecond window after the timestamp until the request should be valid. Defaults to 5000</param>
-        public BinanceClient(string apiKey, string apiSecret, long? recvWindow = null)
+        public BinanceClient(string apiKey, string apiSecret)
         {
             _apiKey = apiKey;
             _apiSecret = apiSecret;
-            _recvWindow = recvWindow;
         }
 
         private delegate T ResponseParseHandler<T>(string input);
@@ -55,10 +52,6 @@ namespace M3C.Finance.BinanceSdk
 
             if (apiMethod == ApiMethodType.Signed)
             {
-                if (!parameters.ContainsKey("recvWindow") && _recvWindow.HasValue)
-                {
-                    parameters.Add("recvWindow", _recvWindow.Value.ToString());
-                }
                 var timestamp = CurrentMilliseconds;
                 parameters.Add("timestamp", timestamp.ToString(CultureInfo.InvariantCulture));
                 var parameterTextForSignature = GetParameterText(parameters);
@@ -98,7 +91,6 @@ namespace M3C.Finance.BinanceSdk
                         var errorMessage = (string)errorObject["msg"];
                         throw new BinanceRestApiException(errorCode,errorMessage);
                     }
-                    throw;
                 }
             }
             return customHandler != null ? customHandler(response) : JsonConvert.DeserializeObject<T>(response);

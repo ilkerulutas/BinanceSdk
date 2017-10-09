@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using M3C.Finance.BinanceSdk.Enumerations;
 using Newtonsoft.Json.Linq;
 

@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using M3C.Finance.BinanceSdk.Enumerations;
 using M3C.Finance.BinanceSdk.ResponseObjects;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
-using NLog.LayoutRenderers;
 using WebSocketSharp;
 
 namespace M3C.Finance.BinanceSdk
@@ -18,8 +14,7 @@ namespace M3C.Finance.BinanceSdk
     {
 
         private const string WebSocketBaseUrl = "wss://stream.binance.com:9443/ws/";
-        private const string DepthEndpointTemplate = WebSocketBaseUrl + "{0}@depth";
-        private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly NLog.Logger logger = LogManager.GetCurrentClassLogger();
         private Dictionary<Guid,WebSocket> ActiveSockets;
 
         public delegate void WebSocketMessageHandler<T>(T messageContent) where T : WebSocketMessageBase;
@@ -30,43 +25,15 @@ namespace M3C.Finance.BinanceSdk
             ActiveSockets = new Dictionary<Guid, WebSocket>();
         }
 
-        public WebSocketDepthMessage DepthMessageParser(string input)
-        {
-            var response = JObject.Parse(input);
-            return new WebSocketDepthMessage
-            {
-                EventType = (string)response["e"],
-                EventTime = (long)response["E"],
-                Symbol = (string)response["s"],
-                UpdateId = (long)response["u"],
-                AskDepthDelta = AskBidParser((JArray)response["a"]),
-                BidDepthDelta = AskBidParser((JArray)response["b"])
-            };
-        }
-
         private string GetWsEndpoint(string method, string symbol)
         {
             var postfix = string.IsNullOrEmpty(method) ? string.Empty : $"@{method}";
             return $"{WebSocketBaseUrl}{symbol.ToLowerInvariant()}{postfix}";
         }
 
-        private List<OrderRecord> AskBidParser(JArray array)
-        {
-            var resultList = new List<OrderRecord>();
-            foreach (var item in array)
-            {
-                resultList.Add(new OrderRecord
-                {
-                    Price = (decimal)item[0],
-                    Quantity = (decimal)item[1]
-                });
-            }
-            return resultList;
-        }
-
         public void ConnectDepthEndpoint(string symbol, WebSocketMessageHandler<WebSocketDepthMessage> messageHandler)
         {
-            ConnectWebSocketEndpoint(GetWsEndpoint("depth",symbol), messageHandler, DepthMessageParser);   
+            ConnectWebSocketEndpoint(GetWsEndpoint("depth",symbol), messageHandler, CustomJsonParsers.DepthMessageParser);   
         }
 
         public void ConnectKlineEndpoint(string symbol, KlineInterval interval,WebSocketMessageHandler<WebSocketKlineMessage> messageHandler)
@@ -138,7 +105,7 @@ namespace M3C.Finance.BinanceSdk
         {
             var ws = new WebSocket(endpoint);
 
-            ws.OnOpen += (sender, e) => { logger.Debug($"{endpoint} | Socket Connection Established ({wsId})"); };
+            ws.OnOpen += delegate { logger.Debug($"{endpoint} | Socket Connection Established ({wsId})"); };
 
             ws.OnClose += (sender, e) =>
             {

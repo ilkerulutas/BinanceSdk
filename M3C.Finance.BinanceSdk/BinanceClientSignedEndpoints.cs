@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using M3C.Finance.BinanceSdk.Enumerations;
 using M3C.Finance.BinanceSdk.ResponseObjects;
 
@@ -18,7 +15,7 @@ namespace M3C.Finance.BinanceSdk
         }
 
         public NewOrderResponse NewOrder(string symbol,OrderSide side,OrderType orderType,TimeInForce timeInForce, decimal quantity, decimal price, bool isTestOrder = false,
-            string newClientOrderId = null, decimal? stopPrice=null, decimal? icebergQuantity=null)
+            string newClientOrderId = null, decimal? stopPrice=null, decimal? icebergQuantity=null, long? recvWindow = null)
         {
             var parameters = new Dictionary<string, string>
             {
@@ -29,6 +26,9 @@ namespace M3C.Finance.BinanceSdk
                 {"quantity", quantity.ToString(CultureInfo.InvariantCulture)},
                 {"price", price.ToString(CultureInfo.InvariantCulture)}
             };
+
+            CheckAndAddReceiveWindow(recvWindow,parameters);
+
             if (!string.IsNullOrEmpty(newClientOrderId))
             {
                 parameters.Add("newClientOrderId",newClientOrderId);
@@ -45,12 +45,23 @@ namespace M3C.Finance.BinanceSdk
             return response;
         }
 
+        private void CheckAndAddReceiveWindow(long? recvWindow,IDictionary<string, string> parameters)
+        {
+            if (recvWindow.HasValue)
+            {
+                parameters.Add("recvWindow",recvWindow.Value.ToString(CultureInfo.InvariantCulture));
+            }
+        }
+
         public QueryOrderResponse QueryOrder(string symbol, long? orderId, string clientOrderId = null,long? recvWindow = null)
         {
             var parameters = new Dictionary<string, string>
             {
                 {"symbol", symbol},
             };
+
+            CheckAndAddReceiveWindow(recvWindow, parameters);
+
             if (!orderId.HasValue && string.IsNullOrEmpty(clientOrderId))
             {
                 throw new ArgumentException("Either orderId or clientOrderId should be set!");
@@ -75,6 +86,9 @@ namespace M3C.Finance.BinanceSdk
             {
                 {"symbol", symbol},
             };
+
+            CheckAndAddReceiveWindow(recvWindow, parameters);
+
             var response = SendRequest<List<OrderInfo>>("openOrders", ApiVersion.Version3, ApiMethodType.Signed, HttpMethod.Get, parameters);
             return new QueryMultipleOrdersResponse
             {
@@ -88,6 +102,9 @@ namespace M3C.Finance.BinanceSdk
             {
                 {"symbol", symbol},
             };
+
+            CheckAndAddReceiveWindow(recvWindow, parameters);
+
             if (orderId.HasValue)
             {
                 parameters.Add("orderId",orderId.Value.ToString(CultureInfo.InvariantCulture));
@@ -109,6 +126,9 @@ namespace M3C.Finance.BinanceSdk
             {
                 {"symbol", symbol},
             };
+
+            CheckAndAddReceiveWindow(recvWindow, parameters);
+
             if (orderId.HasValue)
             {
                 parameters.Add("orderId",orderId.Value.ToString(CultureInfo.InvariantCulture));
@@ -131,6 +151,9 @@ namespace M3C.Finance.BinanceSdk
             {
                 {"symbol", symbol},
             };
+
+            CheckAndAddReceiveWindow(recvWindow, parameters);
+
             if (limit.HasValue)
             {
                 parameters.Add("limit", limit.Value.ToString(CultureInfo.InvariantCulture));
