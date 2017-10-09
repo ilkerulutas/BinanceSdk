@@ -23,6 +23,7 @@
         public static KlineInterval Month1 => new KlineInterval("1M");
 
         public static implicit operator string(KlineInterval version) => version.Value;
+        public static implicit operator KlineInterval(string text) => new KlineInterval(text);
         public override string ToString() => Value;
     }
 }

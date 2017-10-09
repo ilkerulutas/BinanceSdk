@@ -40,6 +40,10 @@
       <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+      <HintPath>packages\NLog.4.4.12\lib\net45\NLog.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
@@ -49,13 +53,22 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="websocket-sharp, Version=1.0.2.59611, Culture=neutral, PublicKeyToken=5660b08a1845a91e, processorArchitecture=MSIL">
+      <HintPath>packages\WebSocketSharp.1.0.3-rc11\lib\websocket-sharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BinanceClient.cs" />
+    <Compile Include="BinanceClientApiKeyRequests.cs" />
     <Compile Include="BinanceClientPublicEndpoints.cs" />
     <Compile Include="BinanceClientSignedEndpoints.cs" />
     <Compile Include="BinanceRestApiException.cs" />
+    <Compile Include="BinanceWebSocketClient.cs" />
+    <Compile Include="BinanceWebSocketClientException.cs" />
     <Compile Include="CustomJsonParsers.cs" />
+    <Compile Include="Enumerations\OrderRejectReason.cs" />
+    <Compile Include="Enumerations\ExecutionType.cs" />
     <Compile Include="Enumerations\OrderStatus.cs" />
     <Compile Include="Enumerations\TimeInForce.cs" />
     <Compile Include="Enumerations\OrderSide.cs" />
@@ -64,7 +77,9 @@
     <Compile Include="Enumerations\KlineInterval.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResponseObjects\AllBookTickersResponse.cs" />
+    <Compile Include="ResponseObjects\BalanceItemShortNames.cs" />
     <Compile Include="ResponseObjects\CancelOrderResponse.cs" />
+    <Compile Include="ResponseObjects\KLineEventItem.cs" />
     <Compile Include="ResponseObjects\QueryMultipleOrdersResponse.cs" />
     <Compile Include="ResponseObjects\NewOrderResponse.cs" />
     <Compile Include="ResponseObjects\OrderInfo.cs" />
@@ -72,7 +87,6 @@
     <Compile Include="ResponseObjects\TickerDailyResponse.cs" />
     <Compile Include="ResponseObjects\KLinesResponseItem.cs" />
     <Compile Include="ResponseObjects\KLinesResponse.cs" />
-    <Compile Include="ResponseObjects\ResponseBase.cs" />
     <Compile Include="ResponseObjects\AccountResponse.cs" />
     <Compile Include="ResponseObjects\AggregateTradeResponse.cs" />
     <Compile Include="ResponseObjects\AggregateTradeResponseItem.cs" />
@@ -84,6 +98,16 @@
     <Compile Include="ResponseObjects\TickerSummary.cs" />
     <Compile Include="ResponseObjects\TimeResponse.cs" />
     <Compile Include="ResponseObjects\TradeInfo.cs" />
+    <Compile Include="ResponseObjects\WebSocketMessageBase.cs" />
+    <Compile Include="ResponseObjects\WebSocketDepthMessage.cs" />
+    <Compile Include="ResponseObjects\WebSocketKlineMessage.cs" />
+    <Compile Include="ResponseObjects\WebSocketTradesMessage.cs" />
+    <Compile Include="ResponseObjects\WsUserDataAccountUpdateMessage.cs" />
+    <Compile Include="ResponseObjects\WebSocketUserDataExecutionReportMessage.cs" />
+    <Compile Include="ResponseObjects\WebSocketUserDataMessage.cs" />
+    <Compile Include="ResponseObjects\WebSocketUserDataMessageType.cs" />
+    <Compile Include="ResponseObjects\WsUserDataOrderUpdateMessage.cs" />
+    <Compile Include="ResponseObjects\WsUserDataTradeUpdateMessage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="M3C.snk" />

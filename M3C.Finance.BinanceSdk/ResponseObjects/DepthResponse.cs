@@ -2,7 +2,7 @@
 
 namespace M3C.Finance.BinanceSdk.ResponseObjects
 {
-    public class DepthResponse :ResponseBase
+    public class DepthResponse
     {
         public long LastUpdateId { get; set; }
         public List<OrderRecord> Bids { get; set; }

@@ -2,13 +2,13 @@
 
 namespace M3C.Finance.BinanceSdk.ResponseObjects
 {
-    public class BalanceItem
+    public class BalanceItemShortNames
     {
-        [JsonProperty(PropertyName = "asset")]
+        [JsonProperty(PropertyName = "a")]
         public string Asset { get; set; }
-        [JsonProperty(PropertyName = "free")]
+        [JsonProperty(PropertyName = "f")]
         public decimal Free { get; set; }
-        [JsonProperty(PropertyName = "locked")]
+        [JsonProperty(PropertyName = "l")]
         public decimal Locked { get; set; }
     }
 }

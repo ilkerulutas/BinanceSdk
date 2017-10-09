@@ -2,7 +2,7 @@
 
 namespace M3C.Finance.BinanceSdk.ResponseObjects
 {
-    public class AccountResponse : ResponseBase
+    public class AccountResponse
     {
         public int BuyerCommission { get; set; }
         public int SellerCommission { get; set; }
