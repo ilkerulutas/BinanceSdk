@@ -48,7 +48,7 @@ var client = new BinanceClient(["BinanceApiKey"], ["BinanceApiSecret"]);
 using (var wsClient = new BinanceWebSocketClient())
 {
     wsClient.ConnectUserDataEndpoint(client,
-       accountMessage =>  logger.Debug("UserData Received! " + accountMessage.EventTime),
+       accountMessage =>  logger.Debug("AccountUpdate Received! " + accountMessage.EventTime),
        orderMessage => logger.Debug("Order Message Received! " + orderMessage.EventTime),
        tradeMessage => logger.Debug("Trade Message Received! " + tradeMessage.EventTime)
     );
