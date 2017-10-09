@@ -20,7 +20,7 @@ var response = client.GetAccountInfo();
 ```csharp
 using (var wsClient = new BinanceWebSocketClient())
 {
-    wsClient.ConnectDepthEndpoint("ethbtc", a => logger.Debug(a.EventTime));
+    wsClient.ConnectDepthEndpoint("ethbtc", depthMessage => logger.Debug(depthMessage.EventTime));
     Thread.Sleep(10000); //to keep socket open, you need to implement your own logic accordingly
 }
 ```
