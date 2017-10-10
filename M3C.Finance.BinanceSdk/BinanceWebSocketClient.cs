@@ -15,14 +15,14 @@ namespace M3C.Finance.BinanceSdk
 
         private const string WebSocketBaseUrl = "wss://stream.binance.com:9443/ws/";
         private static readonly NLog.Logger logger = LogManager.GetCurrentClassLogger();
-        private Dictionary<Guid,WebSocket> ActiveSockets;
+        private List<WebSocket> ActiveSockets;
 
         public delegate void WebSocketMessageHandler<T>(T messageContent) where T : WebSocketMessageBase;
         public delegate T ResponseParseHandler<T>(string input);
 
         public BinanceWebSocketClient()
         {
-            ActiveSockets = new Dictionary<Guid, WebSocket>();
+            ActiveSockets = new List<WebSocket>();
         }
 
         private string GetWsEndpoint(string method, string symbol)
@@ -46,14 +46,12 @@ namespace M3C.Finance.BinanceSdk
             ConnectWebSocketEndpoint(GetWsEndpoint("aggTrade", symbol), messageHandler);
         }
 
-        public void ConnectUserDataEndpoint(BinanceClient client, WebSocketMessageHandler<WsUserDataAccountUpdateMessage> accountUpdateHandler, 
+        public string ConnectUserDataEndpoint(BinanceClient client, WebSocketMessageHandler<WsUserDataAccountUpdateMessage> accountUpdateHandler, 
             WebSocketMessageHandler<WsUserDataOrderUpdateMessage> orderUpdateHandler, WebSocketMessageHandler<WsUserDataTradeUpdateMessage> tradeUpdateHandler)
         {
             var listenKey = client.StartUserDataStream();
             var endpoint = GetWsEndpoint(string.Empty, listenKey);
-
-            var wsId = Guid.NewGuid();
-            var ws = CreateNewWebSocket(endpoint, wsId);
+            var ws = CreateNewWebSocket(endpoint,listenKey);
 
             ws.OnMessage += (sender, e) =>
             {
@@ -76,18 +74,18 @@ namespace M3C.Finance.BinanceSdk
                         orderUpdateHandler(JsonConvert.DeserializeObject<WsUserDataOrderUpdateMessage>(e.Data));
                         return;
                     default:
-                        throw new BinanceWebSocketClientException("Unexpected Event Type In Message");
+                        throw new ApplicationException("Unexpected Event Type In Message");
                 }
             };
 
             ws.Connect();
-            ActiveSockets.Add(wsId, ws);
+            ActiveSockets.Add(ws);
+            return listenKey;
         }
 
         private void ConnectWebSocketEndpoint<T>(string endpoint, WebSocketMessageHandler<T> messageHandler, ResponseParseHandler<T> customParseHandler = null)  where  T : WebSocketMessageBase
         {
-            var wsId = Guid.NewGuid();
-            var ws = CreateNewWebSocket(endpoint, wsId);
+            var ws = CreateNewWebSocket(endpoint);
 
             ws.OnMessage += (sender, e) =>
             {
@@ -98,24 +96,24 @@ namespace M3C.Finance.BinanceSdk
                 messageHandler(eventData);
             };
             ws.Connect();
-            ActiveSockets.Add(wsId, ws);
+            ActiveSockets.Add(ws);
         }
 
-        private WebSocket CreateNewWebSocket(string endpoint, Guid wsId)
+        private BinanceWebSocket CreateNewWebSocket(string endpoint,string listenKey = null)
         {
-            var ws = new WebSocket(endpoint);
+            var ws = new BinanceWebSocket(endpoint,listenKey);
 
-            ws.OnOpen += delegate { logger.Debug($"{endpoint} | Socket Connection Established ({wsId})"); };
+            ws.OnOpen += delegate { logger.Debug($"{endpoint} | Socket Connection Established ({ws.Id})"); };
 
             ws.OnClose += (sender, e) =>
             {
-                ActiveSockets.Remove(wsId);
-                logger.Debug($"Socket Connection Closed! ({wsId})");
+                ActiveSockets.Remove(ws);
+                logger.Debug($"Socket Connection Closed! ({ws.Id})");
             };
 
             ws.OnError += (sender, e) =>
             {
-                ActiveSockets.Remove(wsId);
+                ActiveSockets.Remove(ws);
                 logger.Debug("Msg: " + e.Message + " | " + e.Exception.Message);
             };
             return ws;
@@ -124,10 +122,9 @@ namespace M3C.Finance.BinanceSdk
         public void Dispose()
         {
             logger.Debug("Disposing WebSocket Client...");
-            var keys = ActiveSockets.Keys.ToArray();
-            foreach (var t in keys)
+            for (var i = ActiveSockets.Count - 1; i >= 0; i--)
             {
-                ActiveSockets[t].Close();
+                ActiveSockets[i].Close();
             }
         }
     }

@@ -31,8 +31,7 @@ namespace M3C.Finance.BinanceSdk
             {
                 parameters.Add("limit",limit.Value.ToString());
             }
-            var response = SendRequest("depth", ApiVersion.Version1, ApiMethodType.None, HttpMethod.Get, parameters,CustomJsonParsers.DepthResponseParser);
-            return response;
+            return SendRequest("depth", ApiVersion.Version1, ApiMethodType.None, HttpMethod.Get, parameters,CustomJsonParsers.DepthResponseParser);
         }
 
         /// <summary>
@@ -43,7 +42,7 @@ namespace M3C.Finance.BinanceSdk
         /// <param name="startTime">ID to get aggregate trades from INCLUSIVE.</param>
         /// <param name="endTime">Timestamp in ms to get aggregate trades until INCLUSIVE.</param>
         /// <param name="limit">Default 500; max 500.</param>
-        public AggregateTradeResponse AggregateTrades(string symbol, long? fromId = null, long? startTime = null, long? endTime = null, int? limit = null)
+        public List<AggregateTradeResponseItem> AggregateTrades(string symbol, long? fromId = null, long? startTime = null, long? endTime = null, int? limit = null)
         {
             var parameters = new Dictionary<string, string> { { "symbol", symbol } };
             if (fromId.HasValue)
@@ -62,15 +61,11 @@ namespace M3C.Finance.BinanceSdk
             {
                 parameters.Add("limit", limit.Value.ToString());
             }
-            var response = SendRequest<List<AggregateTradeResponseItem>>("aggTrades", ApiVersion.Version1, ApiMethodType.None, HttpMethod.Get, parameters);
-            return new AggregateTradeResponse
-            {
-                List = response
-            };
+            return SendRequest<List<AggregateTradeResponseItem>>("aggTrades", ApiVersion.Version1, ApiMethodType.None, HttpMethod.Get, parameters);
         }
 
 
-        public KLinesResponse KLines(string symbol, KlineInterval interval, int? limit = null, long? startTime = null,long? endTime = null)
+        public IEnumerable<KLinesResponseItem> KLines(string symbol, KlineInterval interval, int? limit = null, long? startTime = null,long? endTime = null)
         {
             var parameters = new Dictionary<string, string> { { "symbol", symbol }, {"interval",interval} };
             if (limit.HasValue)
@@ -85,33 +80,23 @@ namespace M3C.Finance.BinanceSdk
             {
                 parameters.Add("endTime", endTime.Value.ToString());
             }
-            var response = SendRequest("klines", ApiVersion.Version1, ApiMethodType.None, HttpMethod.Get, parameters,CustomJsonParsers.KLineResponseParser);
-            return response;
+            return SendRequest("klines", ApiVersion.Version1, ApiMethodType.None, HttpMethod.Get, parameters,CustomJsonParsers.KLineResponseParser);
         }
 
         public TickerDailyResponse TickerDaily(string symbol)
         {
             var parameters = new Dictionary<string, string> { { "symbol", symbol } };
-            var response = SendRequest<TickerDailyResponse>("ticker/24hr", ApiVersion.Version1, ApiMethodType.None, HttpMethod.Get, parameters);
-            return response;
+            return SendRequest<TickerDailyResponse>("ticker/24hr", ApiVersion.Version1, ApiMethodType.None, HttpMethod.Get, parameters);
         }
 
-        public TickerAllPricesResponse TickerAllPrices()
+        public IEnumerable<TickerSummary> TickerAllPrices()
         {
-            var response = SendRequest<List<TickerSummary>>("ticker/allPrices", ApiVersion.Version1, ApiMethodType.None, HttpMethod.Get);
-            return new TickerAllPricesResponse
-            {
-                Items = response
-            };
+            return SendRequest<List<TickerSummary>>("ticker/allPrices", ApiVersion.Version1, ApiMethodType.None, HttpMethod.Get);
         }
 
-        public AllBookTickersResponse AllBookTickers()
+        public IEnumerable<TickerDetail> AllBookTickers()
         {
-            var response = SendRequest<List<TickerDetail>>("ticker/allBookTickers", ApiVersion.Version1, ApiMethodType.None, HttpMethod.Get);
-            return new AllBookTickersResponse
-            {
-                Items = response
-            };
+            return SendRequest<List<TickerDetail>>("ticker/allBookTickers", ApiVersion.Version1, ApiMethodType.None, HttpMethod.Get);
         }
 
 

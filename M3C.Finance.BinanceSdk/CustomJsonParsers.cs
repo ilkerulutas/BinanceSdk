@@ -36,7 +36,7 @@ namespace M3C.Finance.BinanceSdk
             };
         }
 
-        public static KLinesResponse KLineResponseParser(string input)
+        public static List<KLinesResponseItem> KLineResponseParser(string input)
         {
             var jArray = JArray.Parse(input);
             var resultList = new List<KLinesResponseItem>();
@@ -57,10 +57,7 @@ namespace M3C.Finance.BinanceSdk
                     TakerBuyQuoteAssetVolume = (decimal)item[10]
                 });
             }
-            return new KLinesResponse
-            {
-                Items = resultList
-            };
+            return resultList;
         }
 
         public static WebSocketDepthMessage DepthMessageParser(string input)

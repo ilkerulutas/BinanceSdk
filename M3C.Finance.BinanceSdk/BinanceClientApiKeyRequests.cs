@@ -16,7 +16,12 @@ namespace M3C.Finance.BinanceSdk
         public bool KeepAliveUserDataStream(string listenKey)
         {
             var response = SendRequest<JObject>("userDataStream", ApiVersion.Version1, ApiMethodType.ApiKey, HttpMethod.Put, new Dictionary<string, string>{ {"listenKey",listenKey} });
-            return response.Type == JTokenType.Object && response.HasValues == false;
+            var success = (response.Type == JTokenType.Object && response.HasValues == false);
+            if (success)
+            {
+                logger.Debug($"Send keep alive request for listenkey: {listenKey} Success...");
+            }
+            return success;
         }
 
         public bool CloseUserDataStream(string listenKey)

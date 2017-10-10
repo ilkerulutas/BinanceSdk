@@ -21,8 +21,8 @@ namespace M3C.Finance.BinanceSdk.Tests
         [TestMethod]
         public void TestStartUserDataStream()
         {
-            var response = _client.StartUserDataStream();
-            Assert.IsFalse(string.IsNullOrEmpty(response));
+            var listenKey = _client.StartUserDataStream();
+            Assert.IsFalse(string.IsNullOrEmpty(listenKey));
         }
 
         [TestMethod]

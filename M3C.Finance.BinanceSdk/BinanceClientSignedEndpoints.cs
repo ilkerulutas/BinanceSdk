@@ -41,17 +41,10 @@ namespace M3C.Finance.BinanceSdk
             {
                 parameters.Add("icebergQty",icebergQuantity.Value.ToString(CultureInfo.InvariantCulture));
             }
-            var response = SendRequest<NewOrderResponse>(isTestOrder ? "order/test" : "order",ApiVersion.Version3,ApiMethodType.Signed, HttpMethod.Post,parameters);
-            return response;
+            return SendRequest<NewOrderResponse>(isTestOrder ? "order/test" : "order",ApiVersion.Version3,ApiMethodType.Signed, HttpMethod.Post,parameters);
         }
 
-        private void CheckAndAddReceiveWindow(long? recvWindow,IDictionary<string, string> parameters)
-        {
-            if (recvWindow.HasValue)
-            {
-                parameters.Add("recvWindow",recvWindow.Value.ToString(CultureInfo.InvariantCulture));
-            }
-        }
+        
 
         public QueryOrderResponse QueryOrder(string symbol, long? orderId, string clientOrderId = null,long? recvWindow = null)
         {
@@ -76,11 +69,10 @@ namespace M3C.Finance.BinanceSdk
             {
                 parameters.Add("origClientOrderId", clientOrderId);
             }
-            var response = SendRequest<QueryOrderResponse>("order", ApiVersion.Version3, ApiMethodType.Signed,HttpMethod.Get,parameters);
-            return response;
+            return SendRequest<QueryOrderResponse>("order", ApiVersion.Version3, ApiMethodType.Signed,HttpMethod.Get,parameters);
         }
 
-        public QueryMultipleOrdersResponse CurrentOpenOrders(string symbol, long? recvWindow = null)
+        public IEnumerable<OrderInfo> CurrentOpenOrders(string symbol, long? recvWindow = null)
         {
             var parameters = new Dictionary<string, string>
             {
@@ -89,14 +81,10 @@ namespace M3C.Finance.BinanceSdk
 
             CheckAndAddReceiveWindow(recvWindow, parameters);
 
-            var response = SendRequest<List<OrderInfo>>("openOrders", ApiVersion.Version3, ApiMethodType.Signed, HttpMethod.Get, parameters);
-            return new QueryMultipleOrdersResponse
-            {
-                Items = response
-            };
+            return SendRequest<List<OrderInfo>>("openOrders", ApiVersion.Version3, ApiMethodType.Signed, HttpMethod.Get, parameters);
         }
 
-        public QueryMultipleOrdersResponse ListAllOrders(string symbol, long? orderId = null,int? limit = null,long? recvWindow = null)
+        public IEnumerable<OrderInfo> ListAllOrders(string symbol, long? orderId = null,int? limit = null,long? recvWindow = null)
         {
             var parameters = new Dictionary<string, string>
             {
@@ -113,11 +101,7 @@ namespace M3C.Finance.BinanceSdk
             {
                 parameters.Add("limit", limit.Value.ToString(CultureInfo.InvariantCulture));
             }
-            var response = SendRequest<List<OrderInfo>>("allOrders", ApiVersion.Version3, ApiMethodType.Signed, HttpMethod.Get, parameters);
-            return new QueryMultipleOrdersResponse
-            {
-                Items = response
-            };
+            return SendRequest<List<OrderInfo>>("allOrders", ApiVersion.Version3, ApiMethodType.Signed, HttpMethod.Get, parameters);
         }
 
         public CancelOrderResponse CancelOrder(string symbol, long? orderId = null, string originalClientOrderId = null, string newClientOrderId = null, long? recvWindow = null)
@@ -163,6 +147,14 @@ namespace M3C.Finance.BinanceSdk
                 parameters.Add("fromId", fromId.Value.ToString(CultureInfo.InvariantCulture));
             }
             return SendRequest<List<TradeInfo>>("myTrades",ApiVersion.Version3,ApiMethodType.Signed,HttpMethod.Get,parameters);
+        }
+
+        private void CheckAndAddReceiveWindow(long? recvWindow, IDictionary<string, string> parameters)
+        {
+            if (recvWindow.HasValue)
+            {
+                parameters.Add("recvWindow", recvWindow.Value.ToString(CultureInfo.InvariantCulture));
+            }
         }
     }
 }
