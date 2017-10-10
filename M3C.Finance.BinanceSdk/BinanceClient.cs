@@ -19,6 +19,13 @@ namespace M3C.Finance.BinanceSdk
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         /// <summary>
+        /// Constructor for Public API Access Only, No Keys Needed
+        /// </summary>
+        public BinanceClient()
+        {
+        }
+
+        /// <summary>
         /// Binance Rest Api Client
         /// </summary>
         /// <param name="apiKey">Binance Api Key</param>
@@ -34,6 +41,14 @@ namespace M3C.Finance.BinanceSdk
         private T SendRequest<T>(string methodName, string version, ApiMethodType apiMethod, HttpMethod httpMethod,
             Dictionary<string, string> parameters = null, ResponseParseHandler<T> customHandler = null)
         {
+
+            if ((apiMethod == ApiMethodType.ApiKey && string.IsNullOrEmpty(_apiKey)) ||
+                (apiMethod == ApiMethodType.Signed &&
+                 (string.IsNullOrEmpty(_apiKey) || string.IsNullOrEmpty(_apiSecret))))
+            {
+                throw new BinanceRestApiException(0,"You have to instantiate client with proper keys in order to make ApiKey or Signed API requests!");
+            }
+
             if (parameters == null)
             {
                 parameters = new Dictionary<string, string>();

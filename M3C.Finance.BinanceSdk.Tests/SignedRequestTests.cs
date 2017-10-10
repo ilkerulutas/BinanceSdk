@@ -25,13 +25,13 @@ namespace M3C.Finance.BinanceSdk.Tests
         [TestMethod]
         public void TestNewTestOrder()
         {
-            var response = _client.NewOrder("ETHBTC",OrderSide.Sell,OrderType.Limit, TimeInForce.ImmediateOrCancel, 0.1m,1.0m,true);
+            //var response = _client.NewOrder("ETHBTC",OrderSide.Sell,OrderType.Limit, TimeInForce.ImmediateOrCancel, 0.1m,1.0m,true);
         }
 
         [TestMethod]
         public void TestNewOrder()
         {
-            var response = _client.NewOrder("NEOBTC", OrderSide.Sell, OrderType.Limit, TimeInForce.GoodUntilCanceled, 1m, 0.05m,false,"order1");
+            //var response = _client.NewOrder("NEOBTC", OrderSide.Sell, OrderType.Limit, TimeInForce.GoodUntilCanceled, 1m, 0.05m,false,"order1");
         }
 
         [TestMethod]
@@ -55,7 +55,7 @@ namespace M3C.Finance.BinanceSdk.Tests
         [TestMethod]
         public void TestCancelOrder()
         {
-            var response = _client.CancelOrder("NEOBTC",null,"order1");
+            //var response = _client.CancelOrder("NEOBTC",null,"order1");
         }
 
         [TestMethod]
