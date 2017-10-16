@@ -29,7 +29,7 @@ namespace M3C.Finance.BinanceSdk.Tests
         public void TestStartUserDataStream()
         {
             var response = _client.StartUserDataStream();
-            Assert.IsFalse(string.IsNullOrEmpty(response));
+            Assert.IsFalse(string.IsNullOrEmpty(response.Result));
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace M3C.Finance.BinanceSdk.Tests
         {
             using (var client = new BinanceWebSocketClient())
             {
-                client.ConnectKlineEndpoint("ethbtc",KlineInterval.Minute1, GenericMessageHandler);
+                client.ConnectKlineEndpoint("ethbtc", KlineInterval.Minute1, GenericMessageHandler);
                 Thread.Sleep(60000);
             }
         }
@@ -83,11 +83,11 @@ namespace M3C.Finance.BinanceSdk.Tests
         {
             using (var client = new BinanceWebSocketClient())
             {
-                client.ConnectUserDataEndpoint(_client,
-                   accountMessage =>  logger.Debug("UserData Received! " + accountMessage.EventTime),
-                   orderMessage => logger.Debug("Order Message Received! " + orderMessage.EventTime),
-                   tradeMessage => logger.Debug("Trade Message Received! " + tradeMessage.EventTime)
-                );
+                var response = client.ConnectUserDataEndpoint(_client,
+                    accountMessage => logger.Debug("UserData Received! " + accountMessage.EventTime),
+                    orderMessage => logger.Debug("Order Message Received! " + orderMessage.EventTime),
+                    tradeMessage => logger.Debug("Trade Message Received! " + tradeMessage.EventTime)
+                ).Result;
                 Thread.Sleep(300000);
             }
         }

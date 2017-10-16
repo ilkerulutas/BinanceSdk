@@ -1,6 +1,15 @@
-﻿using System;
+﻿/*******************************************************
+ * Copyright (C) 2017 - Ilker Ulutas
+ * 
+ * This file is part of M3C.Finance.Binance
+ * https://github.com/ilkerulutas/BinanceSdk
+ * 
+ * Released under the MIT License
+ *******************************************************/
+
+using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
 using M3C.Finance.BinanceSdk.Enumerations;
 using M3C.Finance.BinanceSdk.ResponseObjects;
 using Newtonsoft.Json;
@@ -33,12 +42,12 @@ namespace M3C.Finance.BinanceSdk
 
         public void ConnectDepthEndpoint(string symbol, WebSocketMessageHandler<WebSocketDepthMessage> messageHandler)
         {
-            ConnectWebSocketEndpoint(GetWsEndpoint("depth",symbol), messageHandler, CustomJsonParsers.DepthMessageParser);   
+            ConnectWebSocketEndpoint(GetWsEndpoint("depth", symbol), messageHandler, CustomJsonParsers.DepthMessageParser);
         }
 
-        public void ConnectKlineEndpoint(string symbol, KlineInterval interval,WebSocketMessageHandler<WebSocketKlineMessage> messageHandler)
+        public void ConnectKlineEndpoint(string symbol, KlineInterval interval, WebSocketMessageHandler<WebSocketKlineMessage> messageHandler)
         {
-            ConnectWebSocketEndpoint(GetWsEndpoint("kline_" + interval,symbol),messageHandler);
+            ConnectWebSocketEndpoint(GetWsEndpoint("kline_" + interval, symbol), messageHandler);
         }
 
         public void ConnectTradesEndpoint(string symbol, WebSocketMessageHandler<WebSocketTradesMessage> messageHandler)
@@ -46,12 +55,12 @@ namespace M3C.Finance.BinanceSdk
             ConnectWebSocketEndpoint(GetWsEndpoint("aggTrade", symbol), messageHandler);
         }
 
-        public string ConnectUserDataEndpoint(BinanceClient client, WebSocketMessageHandler<WsUserDataAccountUpdateMessage> accountUpdateHandler, 
+        public async Task<string> ConnectUserDataEndpoint(BinanceClient client, WebSocketMessageHandler<WsUserDataAccountUpdateMessage> accountUpdateHandler,
             WebSocketMessageHandler<WsUserDataOrderUpdateMessage> orderUpdateHandler, WebSocketMessageHandler<WsUserDataTradeUpdateMessage> tradeUpdateHandler)
         {
-            var listenKey = client.StartUserDataStream();
+            var listenKey = await client.StartUserDataStream();
             var endpoint = GetWsEndpoint(string.Empty, listenKey);
-            var ws = CreateNewWebSocket(endpoint,listenKey);
+            var ws = CreateNewWebSocket(endpoint, listenKey);
 
             ws.OnMessage += (sender, e) =>
             {
@@ -65,7 +74,7 @@ namespace M3C.Finance.BinanceSdk
                         accountUpdateHandler(JsonConvert.DeserializeObject<WsUserDataAccountUpdateMessage>(e.Data));
                         return;
                     case "executionReport":
-                        var executionType = (string) responseObject["x"];
+                        var executionType = (string)responseObject["x"];
                         if (executionType == ExecutionType.Trade)
                         {
                             tradeUpdateHandler(JsonConvert.DeserializeObject<WsUserDataTradeUpdateMessage>(e.Data));
@@ -83,7 +92,13 @@ namespace M3C.Finance.BinanceSdk
             return listenKey;
         }
 
-        private void ConnectWebSocketEndpoint<T>(string endpoint, WebSocketMessageHandler<T> messageHandler, ResponseParseHandler<T> customParseHandler = null)  where  T : WebSocketMessageBase
+        public string ConnectUserDataEndpointSync(BinanceClient client,
+            WebSocketMessageHandler<WsUserDataAccountUpdateMessage> accountUpdateHandler,
+            WebSocketMessageHandler<WsUserDataOrderUpdateMessage> orderUpdateHandler,
+            WebSocketMessageHandler<WsUserDataTradeUpdateMessage> tradeUpdateHandler)
+            => ConnectUserDataEndpoint(client, accountUpdateHandler, orderUpdateHandler, tradeUpdateHandler).Result;
+
+        private void ConnectWebSocketEndpoint<T>(string endpoint, WebSocketMessageHandler<T> messageHandler, ResponseParseHandler<T> customParseHandler = null) where T : WebSocketMessageBase
         {
             var ws = CreateNewWebSocket(endpoint);
 
@@ -99,9 +114,9 @@ namespace M3C.Finance.BinanceSdk
             ActiveSockets.Add(ws);
         }
 
-        private BinanceWebSocket CreateNewWebSocket(string endpoint,string listenKey = null)
+        private BinanceWebSocket CreateNewWebSocket(string endpoint, string listenKey = null)
         {
-            var ws = new BinanceWebSocket(endpoint,listenKey);
+            var ws = new BinanceWebSocket(endpoint, listenKey);
 
             ws.OnOpen += delegate { logger.Debug($"{endpoint} | Socket Connection Established ({ws.Id})"); };
 

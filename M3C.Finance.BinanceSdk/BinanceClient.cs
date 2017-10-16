@@ -1,9 +1,19 @@
-﻿using System.Collections.Generic;
+﻿/*******************************************************
+ * Copyright (C) 2017 - Ilker Ulutas
+ * 
+ * This file is part of M3C.Finance.Binance
+ * https://github.com/ilkerulutas/BinanceSdk
+ * 
+ * Released under the MIT License
+ *******************************************************/
+
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
@@ -37,8 +47,8 @@ namespace M3C.Finance.BinanceSdk
         }
 
         private delegate T ResponseParseHandler<T>(string input);
-       
-        private T SendRequest<T>(string methodName, string version, ApiMethodType apiMethod, HttpMethod httpMethod,
+
+        private async Task<T> SendRequest<T>(string methodName, string version, ApiMethodType apiMethod, HttpMethod httpMethod,
             Dictionary<string, string> parameters = null, ResponseParseHandler<T> customHandler = null)
         {
 
@@ -46,7 +56,7 @@ namespace M3C.Finance.BinanceSdk
                 (apiMethod == ApiMethodType.Signed &&
                  (string.IsNullOrEmpty(_apiKey) || string.IsNullOrEmpty(_apiSecret))))
             {
-                throw new BinanceRestApiException(0,"You have to instantiate client with proper keys in order to make ApiKey or Signed API requests!");
+                throw new BinanceRestApiException(0, "You have to instantiate client with proper keys in order to make ApiKey or Signed API requests!");
             }
 
             if (parameters == null)
@@ -82,8 +92,8 @@ namespace M3C.Finance.BinanceSdk
                     var postRequestUrl = $"{BaseUrl}/{version}/{methodName}";
 
                     response = httpMethod == HttpMethod.Get ?
-                        client.DownloadString(getRequestUrl) :
-                        client.UploadString(postRequestUrl, httpMethod.Method, parameterText);
+                        await client.DownloadStringTaskAsync(getRequestUrl) :
+                        await client.UploadStringTaskAsync(postRequestUrl, httpMethod.Method, parameterText);
                 }
                 catch (WebException webException)
                 {
@@ -92,14 +102,14 @@ namespace M3C.Finance.BinanceSdk
                         var errorObject = JObject.Parse(reader.ReadToEnd());
                         var errorCode = (int)errorObject["code"];
                         var errorMessage = (string)errorObject["msg"];
-                        throw new BinanceRestApiException(errorCode,errorMessage);
+                        throw new BinanceRestApiException(errorCode, errorMessage);
                     }
                 }
             }
             return customHandler != null ? customHandler(response) : JsonConvert.DeserializeObject<T>(response);
         }
 
-        private static string GetParameterText(Dictionary<string,string> parameters)
+        private static string GetParameterText(Dictionary<string, string> parameters)
         {
             if (parameters.Count == 0)
             {
@@ -111,9 +121,9 @@ namespace M3C.Finance.BinanceSdk
             {
                 builder.Append($"&{item.Key}={item.Value}");
             }
-            return builder.Remove(0,1).ToString();
+            return builder.Remove(0, 1).ToString();
         }
-        
+
         private enum ApiMethodType
         {
             None = 0,

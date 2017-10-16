@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 using M3C.Finance.BinanceSdk.Enumerations;
 using M3C.Finance.BinanceSdk.ResponseObjects;
 
@@ -9,13 +11,20 @@ namespace M3C.Finance.BinanceSdk
 {
     public partial class BinanceClient
     {
-        public AccountResponse GetAccountInfo()
+        public async Task<AccountResponse> GetAccountInfo(bool filterZeroBalaces = false)
         {
-            return SendRequest<AccountResponse>("account",ApiVersion.Version3,ApiMethodType.Signed, HttpMethod.Get);
+            var response = await SendRequest<AccountResponse>("account", ApiVersion.Version3, ApiMethodType.Signed, HttpMethod.Get);
+            if (filterZeroBalaces)
+            {
+                response.Balances = response.Balances.Where(a => a.Free + a.Locked != 0).ToList();
+            }
+            return response;
         }
 
-        public NewOrderResponse NewOrder(string symbol,OrderSide side,OrderType orderType,TimeInForce timeInForce, decimal quantity, decimal price, bool isTestOrder = false,
-            string newClientOrderId = null, decimal? stopPrice=null, decimal? icebergQuantity=null, long? recvWindow = null)
+        public AccountResponse GetAccountInfoSync() => GetAccountInfo().Result;
+
+        public async Task<NewOrderResponse> NewOrder(string symbol, OrderSide side, OrderType orderType, TimeInForce timeInForce, decimal quantity, decimal price, bool isTestOrder = false,
+            string newClientOrderId = null, decimal? stopPrice = null, decimal? icebergQuantity = null, long? recvWindow = null)
         {
             var parameters = new Dictionary<string, string>
             {
@@ -27,26 +36,31 @@ namespace M3C.Finance.BinanceSdk
                 {"price", price.ToString(CultureInfo.InvariantCulture)}
             };
 
-            CheckAndAddReceiveWindow(recvWindow,parameters);
+            CheckAndAddReceiveWindow(recvWindow, parameters);
 
             if (!string.IsNullOrEmpty(newClientOrderId))
             {
-                parameters.Add("newClientOrderId",newClientOrderId);
+                parameters.Add("newClientOrderId", newClientOrderId);
             }
             if (stopPrice.HasValue)
             {
-                parameters.Add("stopPrice",stopPrice.Value.ToString(CultureInfo.InvariantCulture));
+                parameters.Add("stopPrice", stopPrice.Value.ToString(CultureInfo.InvariantCulture));
             }
             if (icebergQuantity.HasValue)
             {
-                parameters.Add("icebergQty",icebergQuantity.Value.ToString(CultureInfo.InvariantCulture));
+                parameters.Add("icebergQty", icebergQuantity.Value.ToString(CultureInfo.InvariantCulture));
             }
-            return SendRequest<NewOrderResponse>(isTestOrder ? "order/test" : "order",ApiVersion.Version3,ApiMethodType.Signed, HttpMethod.Post,parameters);
+            return await SendRequest<NewOrderResponse>(isTestOrder ? "order/test" : "order", ApiVersion.Version3, ApiMethodType.Signed, HttpMethod.Post, parameters);
         }
 
-        
+        public NewOrderResponse NewOrderSync(string symbol, OrderSide side, OrderType orderType,
+            TimeInForce timeInForce, decimal quantity, decimal price, bool isTestOrder = false,
+            string newClientOrderId = null, decimal? stopPrice = null, decimal? icebergQuantity = null,
+            long? recvWindow = null) =>
+            NewOrder(symbol, side, orderType, timeInForce, quantity, price, isTestOrder, newClientOrderId, stopPrice,
+                icebergQuantity, recvWindow).Result;
 
-        public QueryOrderResponse QueryOrder(string symbol, long? orderId, string clientOrderId = null,long? recvWindow = null)
+        public async Task<QueryOrderResponse> QueryOrder(string symbol, long? orderId, string clientOrderId = null, long? recvWindow = null)
         {
             var parameters = new Dictionary<string, string>
             {
@@ -62,17 +76,21 @@ namespace M3C.Finance.BinanceSdk
 
             if (orderId.HasValue)
             {
-                parameters.Add("orderId",orderId.Value.ToString(CultureInfo.InvariantCulture));
+                parameters.Add("orderId", orderId.Value.ToString(CultureInfo.InvariantCulture));
 
             }
             if (!string.IsNullOrEmpty(clientOrderId))
             {
                 parameters.Add("origClientOrderId", clientOrderId);
             }
-            return SendRequest<QueryOrderResponse>("order", ApiVersion.Version3, ApiMethodType.Signed,HttpMethod.Get,parameters);
+            return await SendRequest<QueryOrderResponse>("order", ApiVersion.Version3, ApiMethodType.Signed, HttpMethod.Get, parameters);
         }
 
-        public IEnumerable<OrderInfo> CurrentOpenOrders(string symbol, long? recvWindow = null)
+        public QueryOrderResponse QueryOrderSync(string symbol, long? orderId, string clientOrderId = null,
+            long? recvWindow = null) =>
+            QueryOrder(symbol, orderId, clientOrderId, recvWindow).Result;
+
+        public async Task<IEnumerable<OrderInfo>> CurrentOpenOrders(string symbol, long? recvWindow = null)
         {
             var parameters = new Dictionary<string, string>
             {
@@ -81,10 +99,13 @@ namespace M3C.Finance.BinanceSdk
 
             CheckAndAddReceiveWindow(recvWindow, parameters);
 
-            return SendRequest<List<OrderInfo>>("openOrders", ApiVersion.Version3, ApiMethodType.Signed, HttpMethod.Get, parameters);
+            return await SendRequest<List<OrderInfo>>("openOrders", ApiVersion.Version3, ApiMethodType.Signed, HttpMethod.Get, parameters);
         }
 
-        public IEnumerable<OrderInfo> ListAllOrders(string symbol, long? orderId = null,int? limit = null,long? recvWindow = null)
+        public IEnumerable<OrderInfo> CurrentOpenOrdersSync(string symbol, long? recvWindow = null) =>
+            CurrentOpenOrders(symbol, recvWindow).Result;
+
+        public async Task<IEnumerable<OrderInfo>> ListAllOrders(string symbol, long? orderId = null, int? limit = null, long? recvWindow = null)
         {
             var parameters = new Dictionary<string, string>
             {
@@ -95,16 +116,20 @@ namespace M3C.Finance.BinanceSdk
 
             if (orderId.HasValue)
             {
-                parameters.Add("orderId",orderId.Value.ToString(CultureInfo.InvariantCulture));
+                parameters.Add("orderId", orderId.Value.ToString(CultureInfo.InvariantCulture));
             }
             if (limit.HasValue)
             {
                 parameters.Add("limit", limit.Value.ToString(CultureInfo.InvariantCulture));
             }
-            return SendRequest<List<OrderInfo>>("allOrders", ApiVersion.Version3, ApiMethodType.Signed, HttpMethod.Get, parameters);
+            return await SendRequest<List<OrderInfo>>("allOrders", ApiVersion.Version3, ApiMethodType.Signed, HttpMethod.Get, parameters);
         }
 
-        public CancelOrderResponse CancelOrder(string symbol, long? orderId = null, string originalClientOrderId = null, string newClientOrderId = null, long? recvWindow = null)
+        public IEnumerable<OrderInfo> ListAllOrdersSync(string symbol, long? orderId = null, int? limit = null,
+            long? recvWindow = null) =>
+            ListAllOrders(symbol, orderId, limit, recvWindow).Result;
+
+        public async Task<CancelOrderResponse> CancelOrder(string symbol, long? orderId = null, string originalClientOrderId = null, string newClientOrderId = null, long? recvWindow = null)
         {
             var parameters = new Dictionary<string, string>
             {
@@ -115,21 +140,25 @@ namespace M3C.Finance.BinanceSdk
 
             if (orderId.HasValue)
             {
-                parameters.Add("orderId",orderId.Value.ToString(CultureInfo.InvariantCulture));
+                parameters.Add("orderId", orderId.Value.ToString(CultureInfo.InvariantCulture));
             }
             if (!string.IsNullOrEmpty(originalClientOrderId))
             {
-                parameters.Add("origClientOrderId",originalClientOrderId);
+                parameters.Add("origClientOrderId", originalClientOrderId);
             }
             if (!string.IsNullOrEmpty(newClientOrderId))
             {
                 parameters.Add("newClientOrderId", newClientOrderId);
             }
-            return SendRequest<CancelOrderResponse>("order", ApiVersion.Version3, ApiMethodType.Signed,
+            return await SendRequest<CancelOrderResponse>("order", ApiVersion.Version3, ApiMethodType.Signed,
                 HttpMethod.Delete, parameters);
         }
 
-        public List<TradeInfo> ListMyTrades(string symbol, int? limit = null, long? fromId = null, long? recvWindow = null)
+        public CancelOrderResponse CancelOrderSync(string symbol, long? orderId = null,
+            string originalClientOrderId = null, string newClientOrderId = null, long? recvWindow = null) =>
+            CancelOrder(symbol, orderId, originalClientOrderId, newClientOrderId, recvWindow).Result;
+
+        public async Task<List<TradeInfo>> ListMyTrades(string symbol, int? limit = null, long? fromId = null, long? recvWindow = null)
         {
             var parameters = new Dictionary<string, string>
             {
@@ -146,8 +175,12 @@ namespace M3C.Finance.BinanceSdk
             {
                 parameters.Add("fromId", fromId.Value.ToString(CultureInfo.InvariantCulture));
             }
-            return SendRequest<List<TradeInfo>>("myTrades",ApiVersion.Version3,ApiMethodType.Signed,HttpMethod.Get,parameters);
+            return await SendRequest<List<TradeInfo>>("myTrades", ApiVersion.Version3, ApiMethodType.Signed, HttpMethod.Get, parameters);
         }
+
+        public List<TradeInfo> ListMyTradesSync(string symbol, int? limit = null, long? fromId = null,
+            long? recvWindow = null) =>
+            ListMyTrades(symbol, limit, fromId, recvWindow).Result;
 
         private void CheckAndAddReceiveWindow(long? recvWindow, IDictionary<string, string> parameters)
         {

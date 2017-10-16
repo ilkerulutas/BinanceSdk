@@ -21,8 +21,11 @@ namespace M3C.Finance.BinanceSdk.Tests
         [TestMethod]
         public void TestStartUserDataStream()
         {
-            var listenKey = _client.StartUserDataStream();
+            var listenKey = _client.StartUserDataStreamSync();
             Assert.IsFalse(string.IsNullOrEmpty(listenKey));
+
+            var listenKeyFromAsync = _client.StartUserDataStream();
+            Assert.IsFalse(string.IsNullOrEmpty(listenKeyFromAsync.Result));
         }
 
         [TestMethod]
@@ -30,8 +33,8 @@ namespace M3C.Finance.BinanceSdk.Tests
         {
             var listenKey = _client.StartUserDataStream();
             Thread.Sleep(3000);
-            var response = _client.KeepAliveUserDataStream(listenKey);
-            Assert.IsTrue(response);
+            var response = _client.KeepAliveUserDataStream(listenKey.Result);
+            Assert.IsTrue(response.Result);
         }
 
         [TestMethod]
@@ -39,8 +42,8 @@ namespace M3C.Finance.BinanceSdk.Tests
         {
             var listenKey = _client.StartUserDataStream();
             Thread.Sleep(3000);
-            var response = _client.CloseUserDataStream(listenKey);
-            Assert.IsTrue(response);
+            var response = _client.CloseUserDataStream(listenKey.Result);
+            Assert.IsTrue(response.Result);
         }
 
     }
