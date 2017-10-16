@@ -9,6 +9,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using M3C.Finance.BinanceSdk.Enumerations;
 using M3C.Finance.BinanceSdk.ResponseObjects;
@@ -21,7 +22,7 @@ namespace M3C.Finance.BinanceSdk
 {
     public class BinanceWebSocketClient : IDisposable
     {
-
+        private const int KeepAliveMilliseconds = 30000;
         private const string WebSocketBaseUrl = "wss://stream.binance.com:9443/ws/";
         private static readonly NLog.Logger logger = LogManager.GetCurrentClassLogger();
         private List<WebSocket> ActiveSockets;
@@ -89,7 +90,21 @@ namespace M3C.Finance.BinanceSdk
 
             ws.Connect();
             ActiveSockets.Add(ws);
+
+            var keepAliveTimer = new Timer(KeepAliveHandler, new KeepAliveContext
+            {
+                Client = client,
+                ListenKey = listenKey
+            }, KeepAliveMilliseconds, KeepAliveMilliseconds);
+
             return listenKey;
+        }
+
+        private static async void KeepAliveHandler(object context)
+        {
+            var ctx = (KeepAliveContext) context;
+            logger.Debug("Making Keepalive Request for :" + ctx.ListenKey);
+            await ctx.Client.KeepAliveUserDataStream(ctx.ListenKey);
         }
 
         public string ConnectUserDataEndpointSync(BinanceClient client,
@@ -141,6 +156,12 @@ namespace M3C.Finance.BinanceSdk
             {
                 ActiveSockets[i].Close();
             }
+        }
+
+        private class KeepAliveContext
+        {
+            public string ListenKey { get; set; }
+            public BinanceClient Client { get; set; }
         }
     }
 }

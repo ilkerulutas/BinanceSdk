@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M3C.Finance.BinanceSdk", "M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M3C.Finance.BinanceSdk.Tests", "M3C.Finance.BinanceSdk.Tests\M3C.Finance.BinanceSdk.Tests.csproj", "{68D494F3-9321-40AC-AE64-CD3BD0F5A85E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M3C.Finance.Binance.Example", "M3C.Finance.Binance.Example\M3C.Finance.Binance.Example.csproj", "{64FF50F3-649C-48C8-B2B8-E0F14CB8351A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{68D494F3-9321-40AC-AE64-CD3BD0F5A85E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{68D494F3-9321-40AC-AE64-CD3BD0F5A85E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{68D494F3-9321-40AC-AE64-CD3BD0F5A85E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64FF50F3-649C-48C8-B2B8-E0F14CB8351A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64FF50F3-649C-48C8-B2B8-E0F14CB8351A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64FF50F3-649C-48C8-B2B8-E0F14CB8351A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64FF50F3-649C-48C8-B2B8-E0F14CB8351A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

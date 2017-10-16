@@ -25,7 +25,7 @@ namespace M3C.Finance.BinanceSdk
         public TimeResponse TimeSync() => Time().Result;
 
         /// <summary>
-        /// 
+        /// Gets the orderbook for the given symbol. You have the option to limit the number of resulting records.
         /// </summary>
         /// <param name="symbol">Symbol</param>
         /// <param name="limit">Optional: Default 100, Max 100</param>
