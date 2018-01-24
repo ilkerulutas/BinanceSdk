@@ -48,7 +48,7 @@ namespace M3C.Finance.Binance.Example
             Console.WriteLine($"First Ask Price: {depthResult.Asks[0].Price}, First Ask Quantity: {depthResult.Asks[0].Quantity}");
             Console.WriteLine($"NoLimit Record Count: {depthResult.Asks.Count}, Limited Record Count: {limitedDepthResult.Asks.Count}");
 
-            //For gettings Compressed/Aggregate trades list
+            //For getting Compressed/Aggregate trades list
             var aggregateTrades = publicRestClient.AggregateTrades("NEOBTC").Result;
             Console.WriteLine($"AggTradeId: {aggregateTrades[0].AggregateTradeId} Price: {aggregateTrades[0].Price}  Quantity: {aggregateTrades[0].Quantity}  WasMaker: {aggregateTrades[0].WasBuyerTheMaker}");
 
@@ -112,7 +112,7 @@ namespace M3C.Finance.Binance.Example
                 }
             }
 
-            //List All Orders including closed/fulfilled etc...
+            //List All Orders
             var allOrders = restClient.ListAllOrders("NEOBTC").Result;
             foreach (var orderInfo in allOrders)
             {

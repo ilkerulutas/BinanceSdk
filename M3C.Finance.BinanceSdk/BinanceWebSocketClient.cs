@@ -9,6 +9,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Security.Authentication;
 using System.Threading;
 using System.Threading.Tasks;
 using M3C.Finance.BinanceSdk.Enumerations;
@@ -23,8 +24,9 @@ namespace M3C.Finance.BinanceSdk
     public class BinanceWebSocketClient : IDisposable
     {
         private const int KeepAliveMilliseconds = 30000;
-        private const string WebSocketBaseUrl = "wss://stream.binance.com:9443/ws/";
+        private const string WebSocketBaseUrl = "wss://stream.binance.com:9443/ws";
         private static readonly NLog.Logger logger = LogManager.GetCurrentClassLogger();
+        protected SslProtocols SupportedProtocols { get; } = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
         private List<WebSocket> ActiveSockets;
 
         public delegate void WebSocketMessageHandler<T>(T messageContent) where T : WebSocketMessageBase;
@@ -35,10 +37,10 @@ namespace M3C.Finance.BinanceSdk
             ActiveSockets = new List<WebSocket>();
         }
 
-        private string GetWsEndpoint(string method, string symbol)
+        private Uri GetWsEndpoint(string method, string symbol)
         {
             var postfix = string.IsNullOrEmpty(method) ? string.Empty : $"@{method}";
-            return $"{WebSocketBaseUrl}{symbol.ToLowerInvariant()}{postfix}";
+            return new Uri($"{WebSocketBaseUrl}/{(method.IsNullOrEmpty() ? symbol : symbol.ToLowerInvariant())}{postfix}");
         }
 
         public void ConnectDepthEndpoint(string symbol, WebSocketMessageHandler<WebSocketDepthMessage> messageHandler)
@@ -113,7 +115,7 @@ namespace M3C.Finance.BinanceSdk
             WebSocketMessageHandler<WsUserDataTradeUpdateMessage> tradeUpdateHandler)
             => ConnectUserDataEndpoint(client, accountUpdateHandler, orderUpdateHandler, tradeUpdateHandler).Result;
 
-        private void ConnectWebSocketEndpoint<T>(string endpoint, WebSocketMessageHandler<T> messageHandler, ResponseParseHandler<T> customParseHandler = null) where T : WebSocketMessageBase
+        private void ConnectWebSocketEndpoint<T>(Uri endpoint, WebSocketMessageHandler<T> messageHandler, ResponseParseHandler<T> customParseHandler = null) where T : WebSocketMessageBase
         {
             var ws = CreateNewWebSocket(endpoint);
 
@@ -129,9 +131,9 @@ namespace M3C.Finance.BinanceSdk
             ActiveSockets.Add(ws);
         }
 
-        private BinanceWebSocket CreateNewWebSocket(string endpoint, string listenKey = null)
+        private BinanceWebSocket CreateNewWebSocket(Uri endpoint, string listenKey = null)
         {
-            var ws = new BinanceWebSocket(endpoint, listenKey);
+            var ws = new BinanceWebSocket(endpoint.AbsoluteUri, listenKey);
 
             ws.OnOpen += delegate { logger.Debug($"{endpoint} | Socket Connection Established ({ws.Id})"); };
 
@@ -146,6 +148,7 @@ namespace M3C.Finance.BinanceSdk
                 ActiveSockets.Remove(ws);
                 logger.Debug("Msg: " + e.Message + " | " + e.Exception.Message);
             };
+            ws.SslConfiguration.EnabledSslProtocols = SupportedProtocols;
             return ws;
         }
 
