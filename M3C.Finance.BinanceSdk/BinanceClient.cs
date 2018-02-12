@@ -22,7 +22,7 @@ namespace M3C.Finance.BinanceSdk
 {
     public partial class BinanceClient
     {
-        private const string BaseUrl = "https://www.binance.com/api";
+        private const string BaseUrl = "https://api.binance.com/api";
 
         private readonly string _apiKey;
         private readonly string _apiSecret;
